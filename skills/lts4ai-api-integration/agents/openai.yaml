@@ -1,0 +1,4 @@
+interface:
+  display_name: "LTS4AI API Integration"
+  short_description: "Integrate LTS4AI models into apps safely"
+  default_prompt: "Use $lts4ai-api-integration to connect the selected LTS4AI model to this application without exposing the API key."
