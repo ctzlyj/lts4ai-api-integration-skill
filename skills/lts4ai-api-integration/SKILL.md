@@ -14,6 +14,7 @@ Integrate LTS4AI through its OpenAI-compatible API while preserving the target p
 - A browser or desktop renderer calls the application's backend or serverless route; it must not call LTS4AI with the real key.
 - Preserve the exact model ID selected by the user. Do not silently substitute a nearby model.
 - Discover or validate models with authenticated `GET /v1/models`; do not hardcode the changing catalog, provider, price, or future model IDs.
+- Read live prices and quota-display settings from the public `GET /api/pricing` and `GET /api/status` endpoints when an application shows cost or balance; do not hardcode the current multipliers or display currency.
 - Do not send a paid inference request merely to test connectivity without explicit approval. Health and model-list checks are read-only.
 - Do not deploy, rotate secrets, alter balances, or change LTS4AI configuration unless separately authorized.
 
