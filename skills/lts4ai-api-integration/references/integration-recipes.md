@@ -153,17 +153,33 @@ Do not paste a real token into documentation, shell history, screenshots, issue 
 
 ## Image Generation
 
-After confirming that the selected model supports image generation:
+After confirming that the exact selected model supports Images API generation, use a separate timeout and disable paid POST retries:
 
 ```ts
-const image = await lts4ai.images.generate({
+const imageClient = lts4ai.withOptions({ timeout: 570_000, maxRetries: 0 })
+const image = await imageClient.images.generate({
   model: selectedModel,
   prompt,
   size: '1024x1024',
+  n: 1,
+  response_format: 'b64_json',
 })
 ```
 
 Treat returned URLs as temporary unless the contract explicitly says otherwise. Persist results server-side according to the application's storage policy; never log temporary signed URLs.
+
+For GPT Image2.6, use the exact ID `gpt-image-2.6` after discovery; do not route it through Chat Completions or rename it2.5. For image edits, send the original reference file bytes as multipart `image` with `n: 1`. A batch consists of independent requests, not `n > 1`.
+
+Python image calls can override the text client's timeout without enabling retries:
+
+```python
+image = client.with_options(timeout=570.0, max_retries=0).images.generate(
+    model=selected_model, prompt=prompt, size="1024x1024", n=1,
+    response_format="b64_json",
+)
+```
+
+Run image work in a durable application task when the hosting platform cannot hold a long connection. Save the task ID before submission and preserve returned images on completion. Do not automatically repeat generation after timeout, cancellation or download failure: the original request can still be charged and can still complete.
 
 ## Test Matrix
 
@@ -174,7 +190,9 @@ Treat returned URLs as temporary unless the contract explicitly says otherwise. 
 | Browser submits unapproved model | Returns application `400` without calling LTS4AI |
 | LTS4AI returns `401`/`403` | Returns sanitized configuration error |
 | LTS4AI returns `429` | Returns a rate-limit response or follows a bounded policy |
-| Timeout/cancellation | Cancels the upstream request and closes the client response |
+| Timeout/cancellation | Propagates cancellation and closes the response; does not claim provider cancellation or no charge |
+| Image batch | Sends independent `n: 1` requests, retaining each task's result and failure separately |
+| Image failure/unknown outcome | Does not automatically repeat generation or assume a refund |
 | Malformed stream event | Fails safely without exposing headers or secrets |
 
 After mocked tests pass, run the read-only checker. Run one minimal paid inference only when the user explicitly authorizes it and identifies the model.

@@ -22,12 +22,19 @@ Integrate LTS4AI through its OpenAI-compatible API while preserving the target p
 
 1. Read the target repository instructions and identify its runtime, existing AI client, API routes, secret handling, and tests.
 2. Determine the exact model ID and capability needed. If no model was selected, expose a server-side-backed selector or ask for one; never guess.
-3. Choose the compatible endpoint: prefer `/responses` for new text integrations, retain `/chat/completions` for existing chat-compatible code, and use the matching image, embedding, or audio endpoint when requested.
+3. Choose an endpoint advertised for the exact model. Prefer `/responses` for new text integrations only when that model supports it; retain `/chat/completions` for chat-only models or existing chat-compatible code. Do not infer audio, embedding, or image capability from a route existing on the gateway.
 4. Reuse the project's OpenAI-compatible client when practical. Change only the Base URL, server-side API key source, and selected model.
 5. For user-selectable models, validate the submitted model against a server-side allowlist intersected with `/v1/models`. Do not trust a browser-supplied model ID directly.
 6. Preserve streaming end to end, propagate cancellation, add a finite timeout, and handle SSE as a stream rather than JSON.
 7. Sanitize errors before returning them to clients. Never expose authorization headers, upstream response headers, secret-bearing request objects, or internal stack traces.
 8. Add scope-matched tests with mocked HTTP responses. Run the read-only checker before any approved minimal live inference.
+
+## Image Requests
+
+- Read the image contract in `references/api-contract.md` before integrating image generation or editing. Submit one image per request (`n: 1`); implement batches as independent requests while preserving the application's concurrency setting.
+- Images are charged per submitted upstream attempt regardless of success, failure, or timeout. Disable SDK/proxy automatic retries. Cancellation or a missing image does not prove that generation stopped or that no charge occurred.
+- Use a separate long timeout for images, preserve returned image bytes or temporary URLs promptly, and retain application task IDs/results across client disconnects. Do not invent a gateway task-recovery endpoint.
+- `gpt-image-2.6` uses Images generation/edit endpoints; its dedicated route rejects Chat Completions. Preserve the exact ID and do not silently downgrade to 2.5. Treat this as a verified contract example, not a replacement for live discovery.
 
 ## References
 
