@@ -76,7 +76,11 @@ for await (const event of stream) {
 
 Never instantiate the client above in a browser component. A server route must authenticate the application user, validate request size, validate the selected model against a server-owned allowlist, call LTS4AI with the server-side key, and return sanitized JSON or an SSE stream.
 
-Minimal Next.js route shape:
+A model picker uses a read-only server endpoint that joins `/api/pricing` and the server key's `/v1/models`, filters by application allowlist and emits entries such as `{ id, label, capabilities, endpoints }`. Use the exact ID as the option value and select an endpoint compatible with its task. List and generate routes must apply the same allowlist and key scope. For multi-tenant apps, cache separately by credential or validated tenant. Keep prompts and reference files out of the catalog request.
+
+For text and image sharing a selector, dispatch server-side to a short map of request adapters. Chat uses `messages`, Responses uses `input`, Images uses `prompt`, and the native Gemini endpoint uses `contents`. Treat capability declarations as display plus request validation, not a reason to forward arbitrary paths from the browser. See [direct invocation](direct-invocation.md) for example payloads.
+
+Minimal Next.js route shape for a Responses-only product allowlist:
 
 ```ts
 import { lts4ai } from '@/server/lts4ai'

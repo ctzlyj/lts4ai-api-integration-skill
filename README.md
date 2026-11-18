@@ -1,8 +1,20 @@
 # LTS4AI API Integration Skill
 
-让 Codex 自动把 LTS4AI 的模型接入网站、后端、CLI 或其他应用。
+让支持 Agent Skill 的助手从 LTS4AI 模型广场选模型、直接调用，也能把模型接入网站、后端、CLI 或其他应用。
 
-这个 Skill 适合不会编程的使用者。你只需要把下面提供的文字复制给 Codex，Codex 会识别项目使用的技术、选择合适的 API 调用方式、编写代码并补充测试。
+安装后直接发一句话就能开始。选择模型和跑真实请求也可以分开进行。
+
+- **选模型**：「列出我现在能用的 LTS4AI 生图模型，说明哪些支持参考图，让我选一个。」
+- **直接调用**：「用我选的模型生成一张蓝色陶瓷杯的商品图，把原图保存到当前目录。」
+- **接入网站**：「给我的网站接入 LTS4AI。网页用下拉框选生图模型，Key 放服务端，接入验证先跑模拟请求。」
+
+通用 Agent 可以读取 [SKILL.md](skills/lts4ai-api-integration/SKILL.md)，使用随 Skill 提供的 Python 3.10+ 脚本或本身的 HTTP 工具。真实调用需要 LTS4AI API Key。配置到运行环境的 `LTS4AI_API_KEY` 后，下面的命令可以立即查询：
+
+```text
+python scripts/lts4ai.py catalog --kind image
+```
+
+命令从 Skill 目录执行。没有 Key 时也可预览公开模型。真实调用、图片编辑和保存原图示例见[直接调用指南](skills/lts4ai-api-integration/references/direct-invocation.md)。
 
 ## 它能做什么
 
@@ -14,7 +26,7 @@
 - 在真正调用付费模型前，先完成模拟测试和只读检查。
 - 生图每请求1张，批量任务拆为独立请求；提交上游后成功、失败或超时均按次扣费，不自动重复生成。
 
-当前契约核对日期：**2026-11-16**。已包含 `gpt-image-2.6` 的 Images API 生图/编辑接入说明、长任务与结果保存、按请求收费和重复扣费防护。具体可用模型与价格仍以当前令牌的模型列表和在线价格目录为准。
+当前契约核对日期：**2026-11-18**。已包含 `gpt-image-2.6` 的 Images API 生图/编辑接入说明、长任务与结果保存、按请求收费和重复扣费防护。具体可用模型与价格仍以当前令牌的模型列表和在线价格目录为准。
 
 ## 第一步：让 Codex 安装 Skill
 
@@ -32,7 +44,7 @@ Codex 回复安装完成后，再发送下一条消息。新安装的 Skill 通�
 ## 第二步：准备 API Token
 
 1. 打开 [LTS4AI](https://api.lts4ai.com) 并登录。
-2. 在控制台创建一个供当前应用使用的 Token。
+2. 在控制台的 API 令牌页面复制默认令牌，或创建一个供当前应用单独使用的令牌。
 3. **不要把 Token 发到聊天、群聊、截图、GitHub 或公开文档里。**
 
 把下面这段话复制给 Codex：
@@ -143,7 +155,9 @@ skills/lts4ai-api-integration/
 ├── agents/openai.yaml
 ├── references/api-contract.md
 ├── references/integration-recipes.md
-└── scripts/check_lts4ai.py
+├── references/direct-invocation.md
+├── scripts/check_lts4ai.py
+└── scripts/lts4ai.py
 ```
 
 ## 安全说明

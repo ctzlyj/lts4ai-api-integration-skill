@@ -27,6 +27,8 @@ Use a token created for the application with the least practical scope and budge
 | Capability | Method and route |
 |---|---|
 | Models | `GET /v1/models` |
+| Anthropic Messages | `POST /v1/messages` |
+| Gemini native | `POST /v1beta/models/{model}:generateContent` |
 | Chat Completions | `POST /v1/chat/completions` |
 | Responses | `POST /v1/responses` |
 | Response compaction | `POST /v1/responses/compact` |
@@ -45,12 +47,12 @@ Call `GET /v1/models` with the same application token used for inference. Select
 
 Recommended website selector pattern:
 
-1. Backend loads `/v1/models` and caches the non-secret result briefly.
+1. Backend joins authenticated `/v1/models` to public `/api/pricing` by exact ID and caches the sanitized result briefly per applicable key or tenant.
 2. Backend intersects live IDs with a product-owned allowlist.
 3. Frontend receives only safe display fields and exact IDs.
-4. Inference route validates the submitted ID against the same allowlist.
+4. Inference route validates the exact ID and endpoint against the same access and capability rules. Model metadata can have generic entries, so use the tested GPT Images exceptions from the direct invocation guide and catalog helper.
 
-Do not scrape UI labels or copy a static catalog into source. If the catalog cannot be queried because the key is missing or rejected, stop and request correct server-side configuration.
+Do not scrape UI labels or copy a static catalog into source. Without a key the public directory can still be shown. When a key is missing or rejected, label access as unverified and have the user configure it securely before live calls.
 
 ## Endpoint Choice
 
@@ -78,7 +80,7 @@ Do not scrape UI labels or copy a static catalog into source. If the catalog can
 - Generate an application request ID for tracing, but never include the API key or full sensitive prompt in logs.
 - Return a stable application error shape to browsers; keep sanitized upstream details only in protected server logs.
 
-## Images Contract (verified 2026-11-16)
+## Images Contract (verified 2026-11-18)
 
 - Use `n: 1`. A batch is multiple independent single-image requests; do not replace the application's concurrency with an arbitrary lower limit. Other image-count fields must also equal1.
 - The gateway reserves funds before submission and charges after actual upstream submission whether the request succeeds, fails or times out. Authentication, insufficient funds and validation rejection before submission are not charged. Polling/retrieval is not a new generation; explicitly retrying generation is a new potentially billable request.
